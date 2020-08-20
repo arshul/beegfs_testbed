@@ -1,0 +1,6 @@
+Deployemnt shell of a mgmt1 node with a login and several compute node for testing
+
+
+Copy the main.tf file in a new floder and change the  `source = "./openstack"` 
+line to the path still point to this repo openstack folder  
+
