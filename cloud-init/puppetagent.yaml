@@ -1,8 +1,22 @@
 #cloud-config
+yum_repos:
+    beegfs:
+        name: Beegfs on Linux
+        baseurl: https://www.beegfs.io/release/beegfs_7.2/dists/rhel7
+        enabled: true
+        metadata_expire: 7d
+        gpgcheck: false
+
 packages:
   - git
   - pciutils
   - unzip
+  - beegfs-storage
+  - kernel-devel
+  - gcc
+  - beegfs-client
+  - beegfs-helperd
+  - beegfs-utils
 
 users:
   - name: ${sudoer_username}
@@ -24,6 +38,15 @@ runcmd:
   - grub2-mkconfig -o /boot/grub2/grub.cfg
   # Remove all ifcfg configuration files that have no corresponding network interface in ip link show.
   - for i in /etc/sysconfig/network-scripts/ifcfg-*; do if ! ip link show | grep -q "$${i##*-}:"; then rm -f $i; fi; done
+  - yum update -y
+  - /opt/beegfs/sbin/beegfs-setup-client -m ${puppetmaster_ip}
+  - ln -s $(uname -r)/ /usr/src/kernels/$(uname -r)/
+  - cd /opt/beegfs/src/client/client_module_7/build && make
+  - if [${node_name}!="login1"]; then \
+    mkdir -p /project && \
+    /opt/beegfs/sbin/beegfs-setup-storage -p /project \
+    -s ${node_id} -i 30${node_id} -m ${puppetmaster_ip} fi
+
 
 write_files:
   - content: |

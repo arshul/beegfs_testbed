@@ -1,9 +1,19 @@
 #cloud-config
+yum_repos:
+    beegfs:
+        name: Beegfs on Linux
+        baseurl: https://www.beegfs.io/release/beegfs_7.2/dists/rhel7
+        enabled: true
+        metadata_expire: 7d
+        gpgcheck: false
+
 packages:
   - git
   - pciutils
   - unzip
-
+  - beegfs-mgmtd
+  - beegfs-utils
+  - beegfs-meta
 users:
   - name: ${sudoer_username}
     groups: adm, wheel, systemd-journal
@@ -26,6 +36,8 @@ runcmd:
   - grub2-mkconfig -o /boot/grub2/grub.cfg
 # Remove all ifcfg configuration files that have no corresponding network interface in ip link show.
   - for i in /etc/sysconfig/network-scripts/ifcfg-*; do if ! ip link show | grep -q "$${i##*-}:"; then rm -f $i; fi; done
+  - /opt/beegfs/sbin/beegfs-setup-mgmtd -p /data/beegfs/beegfs_mgmtd
+  - /opt/beegfs/sbin/beegfs-setup-meta -p /data/beegfs/beegfs_meta -s 2 -m localhost
 
 write_files:
   - content: |

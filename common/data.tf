@@ -123,6 +123,7 @@ EOF
       "${path.module}/cloud-init/puppetagent.yaml",
       {
         node_name             = format("login%d", count.index + 1),
+        node_id               = count.index +1
         sudoer_username       = var.sudoer_username,
         ssh_authorized_keys   = concat(var.public_keys, tls_private_key.ssh[*].public_key_openssh),
         puppetmaster_ip       = local.puppetmaster_ip,
@@ -142,6 +143,7 @@ data "template_cloudinit_config" "node_config" {
       "${path.module}/cloud-init/puppetagent.yaml",
       {
         node_name             = each.key,
+        node_id               = each.key,
         sudoer_username       = var.sudoer_username,
         ssh_authorized_keys   = concat(var.public_keys, tls_private_key.ssh[*].public_key_openssh),
         puppetmaster_ip       = local.puppetmaster_ip,
