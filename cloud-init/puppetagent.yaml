@@ -2,7 +2,7 @@
 yum_repos:
     beegfs:
         name: Beegfs on Linux
-        baseurl: https://www.beegfs.io/release/beegfs_7.2/dists/rhel7
+        baseurl: https://www.beegfs.io/release/beegfs_6/dists/rhel7
         enabled: true
         metadata_expire: 7d
         gpgcheck: false
@@ -38,14 +38,10 @@ runcmd:
   - grub2-mkconfig -o /boot/grub2/grub.cfg
   # Remove all ifcfg configuration files that have no corresponding network interface in ip link show.
   - for i in /etc/sysconfig/network-scripts/ifcfg-*; do if ! ip link show | grep -q "$${i##*-}:"; then rm -f $i; fi; done
-  - yum update -y
+  - if [ "${node_name}" != "login1" ]; then mkdir -p /mnt/beegfs && /opt/beegfs/sbin/beegfs-setup-storage -p /mnt/beegfs -s "${node_id}" -i "30${node_id}" -m "${puppetmaster_ip}";systemctl start beegfs-storage; fi;
   - /opt/beegfs/sbin/beegfs-setup-client -m ${puppetmaster_ip}
-  - ln -s $(uname -r)/ /usr/src/kernels/$(uname -r)/
-  - cd /opt/beegfs/src/client/client_module_7/build && make
-  - if [${node_name}!="login1"]; then \
-    mkdir -p /project && \
-    /opt/beegfs/sbin/beegfs-setup-storage -p /project \
-    -s ${node_id} -i 30${node_id} -m ${puppetmaster_ip} fi
+  - sed -i "/^sysMountSanityCheckMS/c\sysMountSanityCheckMS=0" /etc/beegfs/beegfs-client.conf
+  - systemctl start beegfs-client
 
 
 write_files:
