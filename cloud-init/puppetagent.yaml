@@ -38,10 +38,9 @@ runcmd:
   - grub2-mkconfig -o /boot/grub2/grub.cfg
   # Remove all ifcfg configuration files that have no corresponding network interface in ip link show.
   - for i in /etc/sysconfig/network-scripts/ifcfg-*; do if ! ip link show | grep -q "$${i##*-}:"; then rm -f $i; fi; done
-  - if [ "${node_name}" != "login1" ]; then mkdir -p /mnt/beegfs && /opt/beegfs/sbin/beegfs-setup-storage -p /mnt/beegfs -s "${node_id}" -i "30${node_id}" -m "${puppetmaster_ip}";systemctl start beegfs-storage; fi;
+  - if [ "${node_name}" != "login1" ]; then mkdir -p /mnt/beegfs_storage && /opt/beegfs/sbin/beegfs-setup-storage -p /mnt/beegfs_storage -s "${node_id}" -i "${node_id}01" -m "${puppetmaster_ip}"; sed -i "/^storeAllowFirstRunInit/c\storeAllowFirstRunInit=true" /etc/beegfs/beegfs-storage.conf;systemctl start beegfs-storage;else rm -f /etc/beegfs/beegfs-storage.conf;yum remove beegfs-storage;  fi;
   - /opt/beegfs/sbin/beegfs-setup-client -m ${puppetmaster_ip}
   - sed -i "/^sysMountSanityCheckMS/c\sysMountSanityCheckMS=0" /etc/beegfs/beegfs-client.conf
-  - systemctl start beegfs-client
 
 
 write_files:
@@ -68,3 +67,6 @@ disable_ec2_metadata: false
 timezone: "UTC"
 fqdn: "${node_name}"
 output: { all: "| tee -a /var/log/cloud-init-output.log" }
+power_state:
+  delay: now
+  mode: reboot

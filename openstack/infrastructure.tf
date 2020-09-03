@@ -197,6 +197,7 @@ resource "openstack_compute_instance_v2" "login" {
       block_device[0].uuid
     ]
   }
+  depends_on = [openstack_compute_instance_v2.node]
 }
 
 resource "openstack_networking_port_v2" "port_node" {
@@ -266,6 +267,7 @@ resource "openstack_compute_instance_v2" "node" {
       block_device[0].uuid
     ]
   }
+  depends_on = [openstack_compute_instance_v2.mgmt]
 }
 
 locals {
